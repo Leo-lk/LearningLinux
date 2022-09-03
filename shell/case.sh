@@ -3,7 +3,7 @@
 
 if [ $# -eq 0 ]
 then
-    echo　"No argument is declared"
+    echo "No argument is declared"
     exit
 fi
 
