@@ -29,6 +29,9 @@ else
     echo "$VAR1 != $VAR2" 
 fi
 
-
-
-
+# -eq # ==
+# -ne # !=
+# -gt # >
+# -ge # >=
+# -lt # <
+# -le # <=
