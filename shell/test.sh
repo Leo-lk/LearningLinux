@@ -12,8 +12,8 @@ echo $?
 echo $?
 [ -n "$VAR1" ] # 字符串长度是否大于0
 echo $?
-# 满足条件，返回0
 
+# 满足条件，返回ture
 if test -z $VAR2
 then
     echo "$VAR2 len = 0" 

@@ -2,6 +2,7 @@
 
 VAR1=5
 VAR2=4
+
 # expr：算数运算命令
 ADD=`expr $VAR1 + $VAR2`
 MUL=`expr $VAR1 \* $VAR2`
