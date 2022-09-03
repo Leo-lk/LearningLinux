@@ -1,14 +1,13 @@
 #!/bin/bash
 
 
-if [ $# -eq 0 ]
+if  (($#==0))
 then
     echo "No argument is declared"
     exit
 fi
 
-echo '输入 1 到 4 之间的数字:'
-echo '你输入的数字为:'
+echo '请输入 1 到 4 之间的数字:'
 read aNum
 case $aNum in
     1)  echo '你选择了 1'
