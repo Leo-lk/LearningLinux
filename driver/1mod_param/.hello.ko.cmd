@@ -1,1 +1,0 @@
-cmd_/home/book/learning/driver/mod_param/hello.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id  -T ./scripts/module-common.lds -o /home/book/learning/driver/mod_param/hello.ko /home/book/learning/driver/mod_param/hello.o /home/book/learning/driver/mod_param/hello.mod.o;  true
