@@ -1,0 +1,23 @@
+ 
+ typedef struct{
+    _I next; 
+    _I _prec; 
+    _I data; 
+}_Inode; 
+
+ __INDEX *alloc_Index( _I num) {
+    __INDEX *Pre = 0; 
+    _error( num == 0, _alloc_index_END, "num zero!"); 
+    Pre = ( __INDEX *) malloc( sizeof( __INDEX)  * num); 
+
+_alloc_index_END: 
+    return Pre; 
+}
+_Inode *alloc_Inode( _I num) {
+    _Inode *Pre = 0; 
+    _error( num == 0, _alloc_Inode_END, "num zero! ");
+    Pre = ( _Inode *) malloc( sizeof( _Inode)  * num); 
+
+_alloc_Inode_END: 
+    return Pre; 
+}
