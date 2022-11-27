@@ -10,6 +10,7 @@ int main()
 	int server_len, client_len;
 	struct sockaddr_un server_address;
 	struct sockaddr_un client_address;
+	
     unlink("server_socket");
 	server_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	server_address.sun_family = AF_UNIX;

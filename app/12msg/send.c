@@ -21,6 +21,7 @@ int main()
     struct my_msg_st some_data;
     int msgid;
     char buffer[BUFSIZ];
+    /* 获取key指向的消息队列的标识符 */
     msgid = msgget((key_t)1234, 0666 | IPC_CREAT);
     if (msgid == -1)
     {
@@ -33,6 +34,7 @@ int main()
         fgets(buffer, BUFSIZ, stdin);
         some_data.my_msg_type = 1;
         strcpy(some_data.some_text, buffer);
+        /* 发送一个数据块，该数据块以一个长整型变量开始 */
         if (msgsnd(msgid, (void *)&some_data, MAX_TEXT, 0) == -1)
         {
             fprintf(stderr, "msgsnd failed\n");

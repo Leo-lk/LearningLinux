@@ -6,6 +6,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include "share.h"
+/* 创建一个共享内存段，并将其中的内容显示出来。*/
 
 int main(int argc, char **argv)
 {
@@ -14,6 +15,7 @@ int main(int argc, char **argv)
     struct shared_use_st *shared_stuff;
     char buffer[BUFSIZ];
     int shmid;
+    /* 创建共享内存 */
     shmid = shmget((key_t)1234, sizeof(struct shared_use_st),
     0666 | IPC_CREAT);
     if (shmid == -1)
@@ -21,6 +23,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "shmget failed\n");
         exit(EXIT_FAILURE);
     }
+    /* 获取共享内存的的地址 */
     shared_memory = shmat(shmid, (void *)0, 0);
     if (shared_memory == (void *)-1)
     {
@@ -38,6 +41,7 @@ int main(int argc, char **argv)
             printf("waiting for client...\n");
         }
         printf("Enter some text: ");
+        /* 获取键盘输入 */
         fgets(buffer, BUFSIZ, stdin);
         strncpy(shared_stuff->some_text, buffer, TEXT_SZ);
         shared_stuff->written_by_you = 1;

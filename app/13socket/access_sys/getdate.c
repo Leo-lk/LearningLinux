@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h>
+
 int main(int argc, char *argv[])
 {
 	char *host;
@@ -13,10 +14,12 @@ int main(int argc, char *argv[])
 	struct hostent *hostinfo;
 	struct servent *servinfo;
 	char buffer[128];
+
 	if(argc == 1)
 		host = "localhost";
 	else
 		host = argv[1];
+	
 	hostinfo = gethostbyname(host);
 	if(!hostinfo) 
 	{

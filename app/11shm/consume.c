@@ -8,35 +8,28 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include "share.h"
+/* 创建一个共享内存段，并将其中的内容显示出来。*/
 
-/* 错误上报 */
-void error_op(char const * string)
-{
-    perror(string);
-    exit(EXIT_FAILURE);
-}
-
-
-/*  */
 int main(int argc, char **argv)
 {
-    
     int running = 1;
     void *shared_memory = (void *)0;
     struct shared_use_st *shared_stuff;
     int shmid;
+
     srand((unsigned int)getpid());
-    shmid = shmget((key_t)1234, sizeof(struct shared_use_st),
-    0666 | IPC_CREAT);
+    /* 创建共享内存 */
+    shmid = shmget((key_t)1234, sizeof(struct shared_use_st), 0666 | IPC_CREAT);
     if (shmid == -1)
     {
-    fprintf(stderr, "shmget failed\n");
-    exit(EXIT_FAILURE);
+        fprintf(stderr, "shmget failed\n");
+        exit(EXIT_FAILURE);
     }
+    /* 连接到进程的地址空间，指向空指针表示让系统来选择共享内存的地址，返回值为共享内存的地址 */
     shared_memory = shmat(shmid, (void *)0, 0);
     if (shared_memory == (void *)-1) {
-    fprintf(stderr, "shmat failed\n");
-    exit(EXIT_FAILURE);
+        fprintf(stderr, "shmat failed\n");
+        exit(EXIT_FAILURE);
     }
     printf("Memory attached at %X\n", (int)shared_memory);
     shared_stuff = (struct shared_use_st *)shared_memory;
@@ -54,6 +47,7 @@ int main(int argc, char **argv)
             }
         }
     }
+    /* 将共享内存从当前进程中分离 */
     if (shmdt(shared_memory) == -1)
     {
         fprintf(stderr, "shmdt failed\n");

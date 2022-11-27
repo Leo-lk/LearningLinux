@@ -19,6 +19,7 @@ int main()
     int msgid;
     struct my_msg_st some_data;
     long int msg_to_receive = 0;
+    /* 获取key指向的消息队列的标识符 */
     msgid = msgget((key_t)1234, 0666 | IPC_CREAT);
     if (msgid == -1)
     {
@@ -27,6 +28,7 @@ int main()
     }
     while(running)
     { 
+        /* 获取消息队列中的一个数据块 */
         if (msgrcv(msgid, (void *)&some_data, BUFSIZ, msg_to_receive, 0) == -1)
         {
             fprintf(stderr, "msgrcv failed with error: %d\n", errno);
@@ -36,6 +38,7 @@ int main()
         if (strncmp(some_data.some_text, "end", 3) == 0)
             running = 0;
     }
+
     if (msgctl(msgid, IPC_RMID, 0) == -1)
     {
         fprintf(stderr, "msgctl(IPC_RMID) failed\n");
