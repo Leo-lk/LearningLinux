@@ -19,7 +19,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
     /* 初始化pipe */
-    if (pipe(pipefd) == -1)
+    if (pipe(pipefd) < 0)
     {
         printf("pipe failed\n");
         exit(EXIT_FAILURE);
