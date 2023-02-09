@@ -16,8 +16,7 @@ int main(int argc, char **argv)
     char buffer[BUFSIZ];
     int shmid;
     /* 创建共享内存 */
-    shmid = shmget((key_t)1234, sizeof(struct shared_use_st),
-    0666 | IPC_CREAT);
+    shmid = shmget((key_t)1234, sizeof(struct shared_use_st), 0666 | IPC_CREAT);
     if (shmid == -1)
     {
         fprintf(stderr, "shmget failed\n");

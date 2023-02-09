@@ -9,35 +9,39 @@
 
 #define MAX_TEXT 512
 
-struct my_msg_st
-{
+typedef struct{
     long int my_msg_type;
     char some_text[MAX_TEXT];
-};
+}my_msg_st;
 
 int main()
 {
     int running = 1;
-    struct my_msg_st some_data;
+    my_msg_st some_data;
     int msgid;
     char buffer[BUFSIZ];
     /* 获取key指向的消息队列的标识符 */
     msgid = msgget((key_t)1234, 0666 | IPC_CREAT);
     if (msgid == -1)
     {
-        fprintf(stderr, "msgget failed with error: %d\n", errno);
+        perror("msgget");
         exit(EXIT_FAILURE);
     } 
     while(running)
     {
         printf("Enter some text: ");
-        fgets(buffer, BUFSIZ, stdin);
+        if(fgets(buffer, BUFSIZ, stdin)<0)
+        {
+            perror("fgets");
+            exit(EXIT_FAILURE);
+        }
+        /* 表示命令号/消息类型为1 */
         some_data.my_msg_type = 1;
         strcpy(some_data.some_text, buffer);
-        /* 发送一个数据块，该数据块以一个长整型变量开始 */
+        /* 发送一个数据块，该数据块以一个长整型变量开始(消息类型)，第三个参数为some_text大小 */
         if (msgsnd(msgid, (void *)&some_data, MAX_TEXT, 0) == -1)
         {
-            fprintf(stderr, "msgsnd failed\n");
+            perror("msgsnd");
             exit(EXIT_FAILURE);
         }
         if (strncmp(buffer, "end", 3) == 0)

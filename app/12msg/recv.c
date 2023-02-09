@@ -7,23 +7,23 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-struct my_msg_st
-{
+typedef struct {
     long int my_msg_type;
     char some_text[BUFSIZ];
-};
+} my_msg_st;
 
 int main()
 {
     int running = 1;
     int msgid;
-    struct my_msg_st some_data;
+    my_msg_st some_data;
+    /* 0表示取出消息队列中的第一个消息 */
     long int msg_to_receive = 0;
     /* 获取key指向的消息队列的标识符 */
     msgid = msgget((key_t)1234, 0666 | IPC_CREAT);
     if (msgid == -1)
     {
-        fprintf(stderr, "msgget failed with error: %d\n", errno);
+        perror("msgget");
         exit(EXIT_FAILURE);
     }
     while(running)
@@ -31,7 +31,7 @@ int main()
         /* 获取消息队列中的一个数据块 */
         if (msgrcv(msgid, (void *)&some_data, BUFSIZ, msg_to_receive, 0) == -1)
         {
-            fprintf(stderr, "msgrcv failed with error: %d\n", errno);
+            perror("msgrcv");
             exit(EXIT_FAILURE);
         }
         printf("You wrote: %s", some_data.some_text);
@@ -41,7 +41,7 @@ int main()
 
     if (msgctl(msgid, IPC_RMID, 0) == -1)
     {
-        fprintf(stderr, "msgctl(IPC_RMID) failed\n");
+        perror("msgctl(IPC_RMID)");
         exit(EXIT_FAILURE);
     }
     exit(EXIT_SUCCESS);

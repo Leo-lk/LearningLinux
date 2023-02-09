@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	servinfo = getservbyname("daytime", "tcp");
-	if(!servinfo) 
+	if(!servinfo)
 	{
 		fprintf(stderr,"no daytime service\n");
 		exit(1);

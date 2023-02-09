@@ -1,8 +1,11 @@
+#include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdio.h>
 #include <sys/un.h>
-#include <unistd.h>
+
 
 int main()
 {
@@ -20,11 +23,11 @@ int main()
 	if(result == -1)
 	{
 		perror("oops: client1");
-		exit(1);
+        exit(EXIT_FAILURE);
 	}
 	write(sockfd, &ch, 1);
 	read(sockfd, &ch, 1);
 	printf("char from server = %c\n", ch);
 	close(sockfd);
-	exit(0);
+    exit(EXIT_SUCCESS);
 }
