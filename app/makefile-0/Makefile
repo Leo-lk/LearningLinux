@@ -1,12 +1,25 @@
-objects = main.o kbe.o commond.o insert.o
 
-hello:$(objects)
+CC=gcc
+TARGET=main
+OBJS=recv send
 
-kbe.o commond.o:commond.h
-main.o kbe.o commond.o insert.o:buffer.h
+$(TARGET):$(OBJS)
+	@chmod +x recv
+	@chmod +x send
+
+recv:recv.o
+	@$(CC) -o $@ $^
+
+send:send.o
+	@$(CC) -o $@ $^
+
+# $(TARGET):$(OBJS)
+# 	$(CC) -o $@ $(OBJS)
+
+%.o:%.c
+	@$(CC) -c $^ -o $@
 
 .PHONY:clean
+
 clean:
-	rm hello $(objects)
-
-
+	@rm $(OBJS) *.o
