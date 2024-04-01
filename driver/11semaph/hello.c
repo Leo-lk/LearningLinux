@@ -5,6 +5,7 @@
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
 #include <linux/ioctl.h>
+#include <linux/device.h>
 #include "beep.h"
 
 MODULE_LICENSE("GPL");
@@ -26,11 +27,12 @@ static struct semaphore test_sem;
 */
 static int hello_open(struct inode *inode, struct file *filep)
 {
-    printk("kk hello open\n");
-    /* 休眠可被打断 */
+    printk("kk hello open start\n");
+    /* 和down()相比，down_interruptible的休眠可被用户发送的信号中断, 而down()只会一直等待信号量可用 */
     if(down_interruptible(&test_sem))
         return -ERESTARTSYS;
 
+    printk("kk hello open finish\n");
     return 0;
 }
 
@@ -75,7 +77,7 @@ static int knum = 99;
 
 long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 {
-    long err, ret;
+    long err = 0, ret = 0;
 
     void __user *argp = (void __user *)arg;
     int __user *p = argp;
@@ -86,9 +88,9 @@ long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
         return -ENOTTY;
     }
     if (_IOC_DIR(cmd) & _IOC_READ)
-        ret = !access_ok((void __user *)arg, _IOC_SIZE(cmd));
+        ret = !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
     else if (_IOC_DIR(cmd) & _IOC_WRITE)
-        ret = !access_ok((void __user *)arg, _IOC_SIZE(cmd));
+        ret = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
 
     if (ret)
     {
@@ -151,7 +153,7 @@ static int hello_init(void)
         goto out_err_2;
     }
 
-    sema_init(&test_sem, 2);
+    sema_init(&test_sem, 1);
 
     return 0;
 out_err_2:

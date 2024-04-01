@@ -1,1 +1,0 @@
-cmd_/home/book/learning/driver/dev/hello.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id  -T ./scripts/module-common.lds -o /home/book/learning/driver/dev/hello.ko /home/book/learning/driver/dev/hello.o /home/book/learning/driver/dev/hello.mod.o;  true

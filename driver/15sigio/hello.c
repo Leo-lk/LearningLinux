@@ -80,7 +80,7 @@ static int knum = 99;
 
 long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 {
-    long err, ret;
+    long err = 0, ret = 0;
 
     void __user *argp = (void __user *)arg;
     int __user *p = argp;
@@ -91,9 +91,9 @@ long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
         return -ENOTTY;
     }
     if (_IOC_DIR(cmd) & _IOC_READ)
-        ret = !access_ok((void __user *)arg, _IOC_SIZE(cmd));
+        ret = !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
     else if (_IOC_DIR(cmd) & _IOC_WRITE)
-        ret = !access_ok((void __user *)arg, _IOC_SIZE(cmd));
+        ret = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
 
     if (ret)
     {

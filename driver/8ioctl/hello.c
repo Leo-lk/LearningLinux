@@ -5,6 +5,7 @@
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
 #include <linux/ioctl.h>
+#include <linux/device.h>
 #include "beep.h"
 
 MODULE_LICENSE("GPL");
@@ -68,19 +69,20 @@ static int knum = 99;
 
 long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 {
-	long err,ret;
+    long err = 0, ret = 0;
 
     void __user *argp = (void __user *)arg;
     int __user *p = argp;
 
-    if(_IOC_TYPE(cmd)!=DEV_FIFO_TYPE){
-		pr_err("cmd   %u,bad magic 0x%x/0x%x.\n",cmd,_IOC_TYPE(cmd),DEV_FIFO_TYPE);
-		return -ENOTTY;
-	}
-	if(_IOC_DIR(cmd)&_IOC_READ)
-		ret=!access_ok((void __user*)arg,_IOC_SIZE(cmd));
-	else if( _IOC_DIR(cmd)&_IOC_WRITE )
-		ret=!access_ok((void   __user*)arg,_IOC_SIZE(cmd));
+    if (_IOC_TYPE(cmd) != DEV_FIFO_TYPE)
+    {
+        pr_err("cmd   %u,bad magic 0x%x/0x%x.\n", cmd, _IOC_TYPE(cmd), DEV_FIFO_TYPE);
+        return -ENOTTY;
+    }
+    if (_IOC_DIR(cmd) & _IOC_READ)
+        ret = !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
+    else if (_IOC_DIR(cmd) & _IOC_WRITE)
+        ret = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
 
 	if(ret){
 		pr_err("bad   access %ld.\n",ret);

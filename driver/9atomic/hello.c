@@ -5,6 +5,8 @@
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
 #include <linux/ioctl.h>
+#include <linux/device.h>
+#include <linux/atomic.h>
 #include "beep.h"
 
 MODULE_LICENSE("GPL");
@@ -25,6 +27,7 @@ static atomic_t ato_cnt = ATOMIC_INIT(1);
 */
 static int hello_open(struct inode *inode, struct file *filep)
 {
+    /* 申请资源,原子变量自减并测试是否为0 */
     if (!atomic_dec_and_test(&ato_cnt))
     {
         atomic_inc(&ato_cnt);
@@ -38,7 +41,7 @@ static int hello_open(struct inode *inode, struct file *filep)
 static int hello_release(struct inode *inode, struct file *filep)
 {
     printk("kk hello release\n");
-    atomic_inc(&ato_cnt, 1);
+    atomic_inc(&ato_cnt);
     return 0;
 }
 
@@ -76,7 +79,7 @@ static int knum = 99;
 
 long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 {
-    long err, ret;
+    long err = 0, ret = 0;
 
     void __user *argp = (void __user *)arg;
     int __user *p = argp;
@@ -87,9 +90,9 @@ long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
         return -ENOTTY;
     }
     if (_IOC_DIR(cmd) & _IOC_READ)
-        ret = !access_ok((void __user *)arg, _IOC_SIZE(cmd));
+        ret = !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
     else if (_IOC_DIR(cmd) & _IOC_WRITE)
-        ret = !access_ok((void __user *)arg, _IOC_SIZE(cmd));
+        ret = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
 
     if (ret)
     {

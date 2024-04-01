@@ -5,12 +5,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include "beep.h"
+#include "../beep.h"
 
 
 int main(int argc, char **argv)
 {
-	int fd, num, ret;
+	int fd;
 	fd = open("/dev/hellodevice",O_RDWR);
 	if(fd<0)
 	{
@@ -18,19 +18,8 @@ int main(int argc, char **argv)
 		return fd;
 	}
 	printf("open ok \n ");
-
-	ioctl(fd,DEV_FIFO_CLEAN);
 	
-	ret = ioctl(fd,DEV_FIFO_GETVALUE,&num);
-	if(ret < 0)
-	{
-		perror("ioctl");
-		return ret;
-	}
-	printf("num = %d \n",num);
-
-	num = 77;
-	ioctl(fd,DEV_FIFO_SETVALUE,&num);
+	sleep(50);
 
 	close(fd);
     return 0;

@@ -1,15 +1,11 @@
-CC=gcc
+CC?=gcc
 TARGET=main
-OBJS=recv send
+OBJS=test 
 
 $(TARGET):$(OBJS)
-	@chmod +x recv
-	@chmod +x send
+	@chmod +x test
 
-recv:recv.o
-	@$(CC) -o $@ $^
-
-send:send.o
+test:t1.o
 	@$(CC) -o $@ $^
 
 # $(TARGET):$(OBJS)

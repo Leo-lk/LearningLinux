@@ -81,7 +81,7 @@ static int knum = 99;
 
 long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 {
-    long err, ret;
+    long err = 0, ret = 0;
 
     void __user *argp = (void __user *)arg;
     int __user *p = argp;
