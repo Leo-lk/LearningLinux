@@ -13,7 +13,7 @@ static void hello_release(struct device *dev)
 }
 
 static struct platform_device hello_device = {
-    .name = "hello",
+    .name = "hello",/* 匹配成功的关键属性 */
     .id = -1,
     .dev.release = hello_release,/* 必须存在 */
 };

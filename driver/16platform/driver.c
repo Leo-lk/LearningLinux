@@ -18,7 +18,7 @@ int hello_remove(struct platform_device *pdev)
 }
 
 struct platform_driver hello_driver = {
-    .driver.name = "hello",
+    .driver.name = "hello",/* 匹配成功的关键属性 */
     .probe = hello_probe,
     .remove = hello_remove,
 };
