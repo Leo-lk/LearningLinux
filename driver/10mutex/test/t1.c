@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include "beep.h"
+#include "../beep.h"
 
 
 int main(int argc, char **argv)
@@ -17,8 +17,10 @@ int main(int argc, char **argv)
 		perror("open fail \n");
 		return fd;
 	}
-	printf("open 2 ok \n ");
+	printf("open 1 ok \n ");
 	
+	sleep(20);
+
 	close(fd);
     return 0;
 }

@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m:=device.o driver.o 
+obj-m:=key.o
 else
 KDIR ?=/lib/modules/$(shell uname -r)/build
 PWD  :=$(shell pwd)

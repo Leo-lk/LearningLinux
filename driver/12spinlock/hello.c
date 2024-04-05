@@ -30,8 +30,6 @@ static int hello_open(struct inode *inode, struct file *filep)
     printk("kk hello open\n");
     spin_lock_irqsave(&spin_cnt);
 
-    
-
 
     spin_unlock_irqrestore(&spin_cnt);
 
@@ -41,7 +39,6 @@ static int hello_open(struct inode *inode, struct file *filep)
 
         spin_unlock();
     */
-
 
     return 0;
 }

@@ -1,1 +1,0 @@
-cmd_/home/eden/learning/LearningLinux/kernel/01hello/hello.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/eden/learning/LearningLinux/kernel/01hello/hello.ko /home/eden/learning/LearningLinux/kernel/01hello/hello.o /home/eden/learning/LearningLinux/kernel/01hello/hello.mod.o ;  true

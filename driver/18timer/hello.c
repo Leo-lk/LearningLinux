@@ -11,7 +11,8 @@ struct timer_list my_timer;
 void callback(struct timer_list * tm)
 {
     printk("call back\n");
-    tm->expires = jiffies + 2*HZ;
+    /* 更新触发时间 */
+    tm->expires = jiffies + msecs_to_jiffies(1000);
     add_timer(tm);
 }
 
@@ -19,7 +20,7 @@ void callback(struct timer_list * tm)
 static int hello_init(void)
 {
     timer_setup(&my_timer, callback, 0);
-    my_timer.expires = jiffies + 2*HZ;
+    my_timer.expires = jiffies + msecs_to_jiffies(1000);
     add_timer(&my_timer);
     return 0;
 }

@@ -17,18 +17,18 @@ MODULE_LICENSE("GPL");
 #define MEMBUF_SIZE                 (1024)
 #define DEVICE_NUM                  (10)
 
-static dev_t devno;
-struct class * cls;
-struct device * class_dev;
-
-static struct globalmem_dev {
+struct globalmem_dev {
     struct cdev cdev;
     unsigned char membuf[MEMBUF_SIZE];
+    struct class * cls;
+    struct device * dev;
+    dev_t major;
+    dev_t minor;
 };
 
 static struct globalmem_dev * gmem_dev;
-
-static int major = 0;
+static struct class * cls;
+static dev_t major;
 
 /*  inode 存放不变的信息；
     file 存放可变的信息
@@ -36,11 +36,11 @@ static int major = 0;
 */
 static int hello_open(struct inode *inode, struct file *filep)
 {
-    struct globalmem_dev * dev;
+    struct globalmem_dev * gmmdev;
     printk("kk hello open\n");
     /* 通过成员变量查找返回含有该成员变量的结构体，inode->i_cdev指向一个globalmem_dev类型的cdev成员变量*/
-    dev = container_of(inode->i_cdev, struct globalmem_dev, cdev);
-    filep->private_data = dev;
+    gmmdev = container_of(inode->i_cdev, struct globalmem_dev, cdev);
+    filep->private_data = gmmdev;
     return 0;
 }
 
@@ -57,7 +57,7 @@ static ssize_t hello_read(struct file *filep, char __user *buf, size_t size, lof
     unsigned long p = *pos;
     unsigned int cnt = size;
 
-    struct globalmem_dev *gmem_dev = filep->private_data;
+    struct globalmem_dev *gmmdev = filep->private_data;
 
     if (p > MEMBUF_SIZE)
         return 0;
@@ -65,7 +65,7 @@ static ssize_t hello_read(struct file *filep, char __user *buf, size_t size, lof
         cnt = MEMBUF_SIZE - p;
     }
 
-    if (copy_to_user(buf, gmem_dev->membuf, cnt))
+    if (copy_to_user(buf, gmmdev->membuf, cnt))
     {
         ret = -EFAULT;
     }
@@ -83,7 +83,7 @@ static ssize_t hello_write(struct file *filep, const char __user *buf, size_t si
     unsigned long p = *pos;
     unsigned int cnt = size;
 
-    struct globalmem_dev *gmem_dev = filep->private_data;
+    struct globalmem_dev *gmmdev = filep->private_data;
 
     if (p > MEMBUF_SIZE)
         return 0;
@@ -91,13 +91,13 @@ static ssize_t hello_write(struct file *filep, const char __user *buf, size_t si
         cnt = MEMBUF_SIZE - p;
     }
     
-    if (copy_from_user(gmem_dev->membuf, buf, cnt)){
+    if (copy_from_user(gmmdev->membuf, buf, cnt)){
         ret = -EFAULT;
     }
     else {
         *pos += cnt;
         ret = cnt;
-        printk("hello_write kbuf: %s\n", gmem_dev->membuf);
+        printk("hello_write kbuf: %s\n", gmmdev->membuf);
     }
 
     return ret;
@@ -188,83 +188,90 @@ static struct file_operations hello_ops = {
     .llseek = hello_lseek,
 };
 
-static int gmem_cdev_init(struct globalmem_dev *dev, int index)
+static int gmem_dev_init(struct globalmem_dev *dev, struct class * cls, dev_t major, int index)
 {
     int ret = 0;
     dev_t devno = MKDEV(major, index);
+    dev->cls = cls;
+    dev->minor = index;
+    dev->major = major;
+
     cdev_init(&dev->cdev, &hello_ops);
     ret = cdev_add(&dev->cdev, devno, 1);
     if(ret < 0){
         printk("cdev add fail %d\n", ret);
+        ret = PTR_ERR(dev);
+        return ret;
     }
-    return ret;
+
+    /* 在/sys/class/hellocls创建hellodevice设备 */
+    dev->dev = device_create(dev->cls, NULL, devno, NULL, "hellodevice%d", index);
+    if(IS_ERR (dev->dev)){
+        printk("device_create failed\n");
+        ret = PTR_ERR(dev);
+        return ret;
+    }
+
+    return 0;
 }
 
-static int gmem_class_init(struct device *class_dev, int index)
-{
-    int ret = 0;
-    dev_t devno = MKDEV(major, index);
-    /* 在/sys/class/hellocls创建hellodevice设备 */
-    class_dev = device_create(cls, NULL, devno, NULL, "hellodevice%d", index);
-    if(IS_ERR (class_dev)){
-        printk("device_create failed\n");
-        ret = PTR_ERR(class_dev);
-    }
-    return ret;
-}
 
 static int hello_init(void)
 {
-    int res, i;
-    devno = MKDEV(major, 0);
+    int ret = 0, i;
+    dev_t devno;
+    
     printk("Hello_init \n");
-
-    if(major)
-    {
-        res = register_chrdev_region(devno, DEVICE_NUM, "globalmem");
-    }
-    else
-    {
-        res = alloc_chrdev_region(&devno, 0, DEVICE_NUM, "globalmem");
-        major = MAJOR(devno);
-    }
-    if (res < 0)
-    {
-        printk("register_chrdev fail, res = %d \n", res);
-        return res;
-    }
 
     gmem_dev = kzalloc(sizeof(struct globalmem_dev)*DEVICE_NUM, GFP_KERNEL);
     if (!gmem_dev) {
-        res = -ENOMEM;
-        goto out_err_1;
+        ret = -ENOMEM;
+        return ret;
     }
-    class_dev = kzalloc(sizeof(struct device)*DEVICE_NUM, GFP_KERNEL);
-    if (!class_dev) {
-        res = -ENOMEM;
-        goto out_err_2;
+
+    devno = MKDEV(major, 0);
+
+    if(major)
+    {
+        /* 根据devno注册设备号 */
+        ret = register_chrdev_region(devno, DEVICE_NUM, "globalmem");
+    }
+    else
+    {
+        /* 自动分配主设备号并注册 */
+        ret = alloc_chrdev_region(&devno, 0, DEVICE_NUM, "globalmem");
+        major = MAJOR(devno);
+    }
+    if (ret < 0)
+    {
+        printk("register_chrdev fail, ret = %d \n", ret);
+        goto out_err_chr_region;
     }
 
     cls = class_create(THIS_MODULE, "hellocls");
     if(IS_ERR (cls)){
         printk("class_create failed\n");
-        res = PTR_ERR(cls);
-        goto out_err_3;
+        ret = PTR_ERR(cls);
+        goto out_err_cls_crt;
     }
 
     for (i = 0; i < DEVICE_NUM; i++) {
-        gmem_cdev_init(gmem_dev+i, i);
-        gmem_class_init(class_dev+i, i);
+        ret = gmem_dev_init(gmem_dev+i, cls, major, i);
+        if (ret) {
+            goto out_err_gmem_dev;
+        }
     }
 
     return 0;
-out_err_3:
-    kfree(class_dev);
-out_err_2:
-    kfree(gmem_dev);
-out_err_1:
+
+out_err_gmem_dev:
+    class_destroy(cls);
+out_err_cls_crt:
     unregister_chrdev_region(major, DEVICE_NUM);
-    return res;
+out_err_chr_region:
+    kfree(gmem_dev);
+
+    return ret;
 }
 
 static void hello_exit(void)
@@ -279,9 +286,8 @@ static void hello_exit(void)
     }
     
     class_destroy(cls);
-    kfree(class_dev);
-    kfree(gmem_dev);
     unregister_chrdev_region(major, DEVICE_NUM);
+    kfree(gmem_dev);
     return;
 }
 
