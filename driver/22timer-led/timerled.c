@@ -90,7 +90,7 @@ static void callback(struct timer_list * tm)
     printk("call back\n");
 
     stat = stat==1?0:1;
-
+    /* Overturn led */
     gpio_set_value(locdev->led_gpio, stat);
 
     /* Read tim_expires */
@@ -99,6 +99,7 @@ static void callback(struct timer_list * tm)
     spin_unlock_irqrestore(&locdev->lock, flags);
 
     printk("call back: modify, %lu\n", tim_expires);
+    /* Restart timer */
     mod_timer(&locdev->timer, jiffies + msecs_to_jiffies(tim_expires));
 
     //add_timer(&locdev->timer);
@@ -136,7 +137,7 @@ long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
         break;
     case DEV_MODIFY_TIMER:
         printk("DEV_MODIFY_TIMER \n");
-        
+        /* Write tim_expires */
         spin_lock_irqsave(&locdev->lock, flags);
         locdev->tim_expires = arg;
         spin_unlock_irqrestore(&locdev->lock, flags);
