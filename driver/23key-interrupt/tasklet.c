@@ -32,6 +32,7 @@ struct local_dev_t {
     struct device_node	*nd;
     unsigned int key_gpio;
     struct timer_list timer;
+    struct tasklet_struct key_tasklet;
     spinlock_t lock;                /* protect key_stat*/
     int key_stat;
     int irq;
@@ -50,10 +51,16 @@ static dev_t major;
 static int get_gpio_msg(struct local_dev_t *dev);
 static int key_set_irq(struct local_dev_t *dev);
 
+void key_tasklet_func(unsigned long data)
+{
+    struct local_dev_t * locdev = (void *)data;
+    mod_timer(&locdev->timer, jiffies + msecs_to_jiffies(TIME_TRIG));
+}
+
 irqreturn_t key_handle(int irq, void *dev_id)
 {
     struct local_dev_t * locdev = dev_id;
-    mod_timer(&locdev->timer, jiffies + msecs_to_jiffies(TIME_TRIG));
+    tasklet_schedule(&locdev->key_tasklet);
     return IRQ_HANDLED;
 }
 
@@ -108,6 +115,7 @@ static int hello_release(struct inode *inode, struct file *filep)
 
     gpio_free(locdev->key_gpio); /* 释放GPIO */
     del_timer_sync(&locdev->timer);
+    tasklet_kill(&locdev->key_tasklet);
     free_irq(locdev->irq, locdev);
     return 0;
 }
@@ -171,6 +179,7 @@ static int key_set_irq(struct local_dev_t *dev)
     if ((irq_type & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_NONE) {
         irq_type |= IRQ_TYPE_EDGE_BOTH;
     }
+    tasklet_init(&dev->key_tasklet, key_tasklet_func, (unsigned long)dev);
 
     ret = request_irq(dev->irq, key_handle, irq_type, "key-irq", dev);
     if (ret) {

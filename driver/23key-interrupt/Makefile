@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m:=key.o
+obj-m:=workque.o
 else
 KDIR ?=/lib/modules/$(shell uname -r)/build
 PWD  :=$(shell pwd)
