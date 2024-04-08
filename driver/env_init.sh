@@ -22,6 +22,7 @@ elif [ ${input} == "this" ]; then
     export KDIR=/lib/modules/$(shell uname -r)/build
     export CC=gcc
 else
+    echo "Must input the one of this:"
     echo "ask  : 100ask"
     echo "atk  : atk"
     echo "this : ubuntu"
