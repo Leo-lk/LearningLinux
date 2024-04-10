@@ -36,7 +36,8 @@ static int hello_open(struct inode *inode, struct file *filep)
 static int hello_release(struct inode *inode, struct file *filep)
 {
     printk("kk hello release\n");
-    
+    /* 调用fasync_helper删除异步通知 */
+    hello_fasync(-1, filep, 0);
     return 0;
 }
 
@@ -70,7 +71,7 @@ static ssize_t hello_write(struct file *filep, const char __user *buf, size_t si
         return error;
     }
     printk("hello_write kbuf: %s\n", test_buf);
-
+    /* 发送信号（类似于产生'中断'） */
     kill_fasync(&async_hello, SIGIO, POLL_IN);
 
     return 0;
@@ -123,6 +124,7 @@ long hello_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 int hello_fasync (int fd, struct file * filep, int on)
 {
     printk("hello_fasync\n");
+    /* 初始化，在fcntl(fd, F_SETFL, flag|FASYNC)时执行 */
     return fasync_helper(fd, filep, on, &async_hello);
 }
 
