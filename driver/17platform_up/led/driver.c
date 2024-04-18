@@ -279,14 +279,14 @@ int local_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id local_match[] = {
-	{ .compatible = "gpioleds" },   /* 根据此属性和设备树上的compatible进行匹配*/
+	{ .compatible   = "gpioleds" },   /* 根据此属性和设备树上的compatible进行匹配*/
 	{},
 };
 MODULE_DEVICE_TABLE(of, local_match);
 
 static struct platform_driver local_driver = {
 	.driver	= {
-		.name		= "gpioleds_dri",   /* display in /sys/bus/platform/drivers */            
+		.name		    = "gpioleds_dri",   /* display in /sys/bus/platform/drivers */            
 		.of_match_table = of_match_ptr(local_match),
 	},
 	.probe	= local_device_probe,
