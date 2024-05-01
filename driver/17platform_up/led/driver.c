@@ -145,37 +145,8 @@ static int local_cdev_init(struct local_dev_t *dev, struct class * cls, dev_t ma
 static int get_gpio_msg(struct local_dev_t *dev)
 {
     int ret = 0;
-	const char *str;
 
-    /* 设置LED所使用的GPIO */
-	/* 1、获取设备节点：gpioled */
-	dev->nd = of_find_node_by_path("/gpioled");
-	if(dev->nd == NULL) {
-		printk("gpioled node not find!\r\n");
-		return -EINVAL;
-	}
-
-	/* 2.读取status属性 */
-	ret = of_property_read_string(dev->nd, "status", &str);
-	if(ret < 0) 
-	    return -EINVAL;
-
-	if (strcmp(str, "okay"))
-        return -EINVAL;
-    
-	/* 3、获取compatible属性值并进行匹配 */
-	ret = of_property_read_string(dev->nd, "compatible", &str);
-	if(ret < 0) {
-		printk("gpioled: Failed to get compatible property\n");
-		return -EINVAL;
-	}
-
-    if (strcmp(str, "gpioleds")) {
-        printk("gpioled: Compatible match failed\n");
-        return -EINVAL;
-    }
-
-	/* 4、 获取设备树中的gpio属性，得到LED所使用的LED编号 */
+	/* 1、 获取设备树中的gpio属性，得到LED所使用的LED编号 */
 	dev->led_gpio = of_get_named_gpio(dev->nd, "gpios", 0);
 	if(dev->led_gpio < 0) {
 		printk("can't get gpios");
@@ -183,14 +154,14 @@ static int get_gpio_msg(struct local_dev_t *dev)
 	}
 	printk("gpios num = %d\r\n", dev->led_gpio);
 
-	/* 5.向gpio子系统申请使用GPIO */
+	/* 2.向gpio子系统申请使用GPIO */
 	ret = gpio_request(dev->led_gpio, "LED-GPIO");
     if (ret) {
         printk(KERN_ERR "gpioled: Failed to request gpios\n");
         return ret;
 	}
 
-	/* 6、设置GPIO为输出，并且输出低电平，默认关闭LED灯 */
+	/* 3、设置GPIO为输出，并且输出低电平，默认关闭LED灯 */
 	ret = gpio_direction_output(dev->led_gpio, 0);
 	if(ret < 0) {
 		printk("can't set gpio!\r\n");
@@ -211,38 +182,43 @@ int local_device_probe(struct platform_device *pdev)
         ret = -ENOMEM;
         return ret;
     }
+    /* 从平台设备中获取node，来初始化引脚 */
+    local_dev->nd = pdev->dev.of_node;
     ret = get_gpio_msg(local_dev);
     if (ret){
         goto out_err_chr_region;
     }
 
-    devno = MKDEV(major, 0);
+    /* 下面可以注册cdev向用户提供交互接口 */
+    {
+        devno = MKDEV(major, 0);
 
-    if(major){
-        /* 根据devno注册设备号 */
-        ret = register_chrdev_region(devno, DEVICE_NUM, "globalmem");
-    }
-    else{
-        /* 自动分配主设备号并注册 */
-        ret = alloc_chrdev_region(&devno, 0, DEVICE_NUM, "globalmem");
-        major = MAJOR(devno);
-    }
-    if (ret < 0){
-        printk("register_chrdev fail, ret = %d \n", ret);
-        goto out_err_chr_region;
-    }
+        if(major){
+            /* 根据devno注册设备号 */
+            ret = register_chrdev_region(devno, DEVICE_NUM, "globalmem");
+        }
+        else{
+            /* 自动分配主设备号并注册 */
+            ret = alloc_chrdev_region(&devno, 0, DEVICE_NUM, "globalmem");
+            major = MAJOR(devno);
+        }
+        if (ret < 0){
+            printk("register_chrdev fail, ret = %d \n", ret);
+            goto out_err_chr_region;
+        }
 
-    cls = class_create(THIS_MODULE, "hellocls");
-    if(IS_ERR (cls)){
-        printk("class_create failed\n");
-        ret = PTR_ERR(cls);
-        goto out_err_cls_crt;
-    }
+        cls = class_create(THIS_MODULE, "hellocls");
+        if(IS_ERR (cls)){
+            printk("class_create failed\n");
+            ret = PTR_ERR(cls);
+            goto out_err_cls_crt;
+        }
 
-    for (i = 0; i < DEVICE_NUM; i++) {
-        ret = local_cdev_init(local_dev+i, cls, major, i);
-        if (ret) {
-            goto out_err_gmem_dev;
+        for (i = 0; i < DEVICE_NUM; i++) {
+            ret = local_cdev_init(local_dev+i, cls, major, i);
+            if (ret) {
+                goto out_err_gmem_dev;
+            }
         }
     }
 
