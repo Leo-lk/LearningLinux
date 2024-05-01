@@ -26,7 +26,7 @@ struct platform_driver hello_driver = {
     .probe = hello_probe,
     .remove = hello_remove,
 };
-
+#if 0
 static int hello_init(void)
 {
     printk("driver Hello_init \n");
@@ -34,7 +34,6 @@ static int hello_init(void)
     /* 注册 */
     return platform_driver_register(&hello_driver);
 }
-
 static void hello_exit(void)
 {
     printk("driver Hello_exit \n");
@@ -42,10 +41,15 @@ static void hello_exit(void)
     platform_driver_unregister(&hello_driver);
     return;
 }
+module_init(hello_init);
+module_exit(hello_exit);
+#else
+/* 等同于在init和exit中仅仅注册注销驱动 */
+module_platform_driver(hello_driver);
+#endif
 
 MODULE_AUTHOR("LUKEKE");                    // 作者
 MODULE_DESCRIPTION("register_chrdev test"); // 描述
 MODULE_ALIAS("Driver Learn");               // 别名
 
-module_init(hello_init);
-module_exit(hello_exit);
+
