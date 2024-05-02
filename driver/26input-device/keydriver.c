@@ -112,16 +112,23 @@ static int get_gpio_msg(struct local_dev_t *dev)
 int hello_probe(struct platform_device *pdev)
 {
     int ret = 0;
+    struct local_dev_t *local_dev;
     struct input_dev *inputdev;
 
     printk("driver key probe \n");
-    local_dev.nd = pdev->dev.of_node;
+    local_dev = devm_kzalloc(&pdev->dev, sizeof(*local_dev), GFP_KERNEL);
+    if (!local_dev) {
+        ret = ENOMEM;
+        goto out;
+    }
+    
+    local_dev->nd = pdev->dev.of_node;
 
-    ret = get_gpio_msg(&local_dev);
+    ret = get_gpio_msg(local_dev);
     if (ret)
-        return ret;
-    timer_setup(&local_dev.timer, timer_callback, 0);
-    ret = key_set_irq(&local_dev);
+        goto free_localdev;
+    timer_setup(&local_dev->timer, timer_callback, 0);
+    ret = key_set_irq(local_dev);
     if (ret)
         goto free_gpio;;
 
@@ -144,27 +151,35 @@ int hello_probe(struct platform_device *pdev)
 		printk(KERN_ERR "%s: Failed to register device\n", __func__);
 		goto free_inputdev;
 	}
-    local_dev.inputdev = inputdev;
+    local_dev->inputdev = inputdev;
+    /* 把local_dev放到pdev->dev.drvdata中 */
+    platform_set_drvdata(pdev, &local_dev);
 
     return 0;
 
 free_inputdev:
     input_free_device(inputdev);
 free_irq:
-    free_irq(local_dev.irq, &local_dev);
+    free_irq(local_dev->irq, &local_dev);
 free_gpio:
-    gpio_free(local_dev.key_gpio);
-    del_timer_sync(&local_dev.timer);
+    gpio_free(local_dev->key_gpio);
+    del_timer_sync(&local_dev->timer);
+free_localdev:
+    devm_kfree(&pdev->dev, local_dev);
+out:
     return ret;
 }
 /* 驱动或设备一方卸载后调用 */
 int hello_remove(struct platform_device *pdev)
 {
+    struct local_dev_t *localdev = pdev->dev.driver_data;
+
     printk("driver key remove \n");
-    gpio_free(local_dev.key_gpio);
-    del_timer_sync(&local_dev.timer);
-    free_irq(local_dev.irq, &local_dev);
-    input_free_device(local_dev.inputdev);
+    gpio_free(localdev->key_gpio);
+    del_timer_sync(&localdev->timer);
+    free_irq(localdev->irq, &local_dev);
+    input_free_device(localdev->inputdev);
+    devm_kfree(&pdev->dev, localdev);
     /* 需要unregister input吗 */
     return 0;
 }

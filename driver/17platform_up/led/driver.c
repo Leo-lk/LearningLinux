@@ -222,6 +222,9 @@ int local_device_probe(struct platform_device *pdev)
         }
     }
 
+    /* 把local_dev放到pdev->dev.drvdata中 */
+    platform_set_drvdata(pdev, &local_dev);
+
     return 0;
 
 out_err_gmem_dev:
@@ -270,24 +273,28 @@ static struct platform_driver local_driver = {
 };
 
 
-static int local_init(void)
+#if 0
+static int hello_init(void)
 {
-    printk("driver local_init \n");
+    printk("driver Hello_init \n");
+    
     /* 注册 */
-    return platform_driver_register(&local_driver);
+    return platform_driver_register(&hello_driver);
 }
-
-static void local_exit(void)
+static void hello_exit(void)
 {
-    printk("driver local_exit \n");
+    printk("driver Hello_exit \n");
     /* 卸载 */
-    platform_driver_unregister(&local_driver);
+    platform_driver_unregister(&hello_driver);
     return;
 }
+module_init(hello_init);
+module_exit(hello_exit);
+#else
+/* 等同于在init和exit中仅仅注册注销驱动 */
+module_platform_driver(local_driver);
+#endif
 
 MODULE_AUTHOR("LUKEKE");                    // 作者
 MODULE_DESCRIPTION("register_chrdev test"); // 描述
 MODULE_ALIAS("Driver Learn");               // 别名
-
-module_init(local_init);
-module_exit(local_exit);
