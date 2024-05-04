@@ -8,69 +8,30 @@
 #include <linux/of_irq.h>
 #include <linux/input.h>
 
-MODULE_LICENSE("GPL");
+/* 这是一个伪代码 */
 
-#define TIME_TRIG                   (15)
+MODULE_LICENSE("GPL");
 
 struct local_dev_t {
     struct input_dev *inputdev;
     struct device_node	*nd;
-    unsigned int key_gpio;
-    struct timer_list timer;
-    int key_stat;
-    spinlock_t lock;
-    int irq;
 };
 
-enum key_stat{
-    KEY_PRESS = 0,
-    KEY_RELEASE,
-    KEY_KEEP
-};
 /* 按键有有电平变化，中断触发*/
 irqreturn_t key_handle(int irq, void *dev_id)
 {
     struct local_dev_t * locdev = dev_id;
-    /* 启动定时器*/
-    mod_timer(&locdev->timer, jiffies + msecs_to_jiffies(TIME_TRIG));
-    return IRQ_HANDLED;
-}
-
-/* 定时器回调函数 */
-static void timer_callback(struct timer_list * tm)
-{
-    static int cur_stat = 0, last_stat = 0, stat = KEY_KEEP;
-    unsigned long flags;
-    struct local_dev_t * locdev;
-    locdev = container_of(tm, struct local_dev_t, timer);
-
-    /* 获取按键状态 */
-    cur_stat = gpio_get_value(locdev->key_gpio);
-    if (cur_stat != last_stat) {
-        stat = (cur_stat == 0)?KEY_RELEASE:KEY_PRESS;
-    }
-    else{
-        stat = KEY_KEEP;
-    }
-    last_stat = cur_stat;
-    spin_lock_irqsave(&locdev->lock, flags);
-    locdev->key_stat = stat;
-    spin_unlock_irqrestore(&locdev->lock, flags);
-    
-    if(stat == KEY_KEEP)
-        return;
-
-    /* 只在按键按下和释放时上报input事件 */
-    input_report_key(locdev->inputdev, BTN_1, locdev->key_stat);
+    /* 上报事件(也能在下半段做)， key只有 0:释放 1:按下 2:持续按下*/
+    input_report_key(locdev->inputdev, BTN_1, 1);
 	input_sync(locdev->inputdev);
+    return IRQ_HANDLED;
 }
 
 static int hardware_init(struct local_dev_t *dev)
 { 
     int ret = 0;
     /* 设置gpio状态 */
-    /* 设置定时器 */
-    /* 设置中断服务函数 */
+    /* 设置中断服务函数 key_handle */
     return ret;
 }
 
@@ -89,7 +50,6 @@ int input_probe(struct platform_device *pdev)
     }
     /* 从platform设备中获取设备节点 */
     local_dev->nd = pdev->dev.of_node;
-    timer_setup(&local_dev->timer, timer_callback, 0);
     /* 根据设备节点初始化硬件 */
     ret = hardware_init(local_dev);
     if (ret)
@@ -133,7 +93,7 @@ out:
 int input_remove(struct platform_device *pdev)
 {
     struct local_dev_t *localdev = pdev->dev.driver_data;
-
+    /* free_hardware */
     input_unregister_device(localdev->inputdev);
     return 0;
 }
