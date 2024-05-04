@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m:=keydriver.o
+obj-m:=pollkeydriver.o
 else
 KDIR ?=/lib/modules/$(shell uname -r)/build
 PWD  :=$(shell pwd)
