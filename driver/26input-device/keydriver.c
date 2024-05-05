@@ -240,6 +240,6 @@ struct platform_driver keyinput_driver = {
 /* 等同于在init和exit中仅仅注册注销驱动 */
 module_platform_driver(keyinput_driver);
 
-MODULE_AUTHOR("LUKEKE");                    // 作者
-MODULE_DESCRIPTION("register input_device key"); // 描述
-MODULE_ALIAS("Driver Learn");               // 别名
+MODULE_AUTHOR("LUKEKE <eden.lukeke@qq.com>");       // 作者
+MODULE_DESCRIPTION("register input_device key");    // 描述
+MODULE_ALIAS("Driver Learn");                       // 别名

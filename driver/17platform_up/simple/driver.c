@@ -69,8 +69,8 @@ module_exit(hello_exit);
 module_platform_driver(hello_driver);
 #endif
 
-MODULE_AUTHOR("LUKEKE");                    // 作者
-MODULE_DESCRIPTION("register_chrdev test"); // 描述
-MODULE_ALIAS("Driver Learn");               // 别名
+MODULE_AUTHOR("LUKEKE <eden.lukeke@qq.com>");   // 作者
+MODULE_DESCRIPTION("register_chrdev test");     // 描述
+MODULE_ALIAS("Driver Learn");                   // 别名
 
 

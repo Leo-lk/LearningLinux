@@ -239,6 +239,6 @@ static struct i2c_driver pcf8563_i2c_driver  = {
 
 module_i2c_driver(pcf8563_i2c_driver);
 
-MODULE_AUTHOR("eden.lu");
+MODULE_AUTHOR("LUKEKE <eden.lukeke@qq.com>");
 MODULE_DESCRIPTION("rtc pcf8563 driver, and dev in /dev/pcf8563dev");
 MODULE_LICENSE("GPL");

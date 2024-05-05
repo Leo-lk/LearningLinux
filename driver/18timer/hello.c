@@ -31,7 +31,7 @@ static void hello_exit(void)
     return;
 }
 
-MODULE_AUTHOR("LUKEKE");                    // 作者
+MODULE_AUTHOR("LUKEKE <eden.lukeke@qq.com>"); // 作者
 MODULE_DESCRIPTION("Timer"); // 描述
 MODULE_ALIAS("Driver Learn");               // 别名
 
