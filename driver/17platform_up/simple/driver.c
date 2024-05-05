@@ -22,7 +22,7 @@ int hello_probe(struct platform_device *pdev)
 
     local_dev = devm_kzalloc(&pdev->dev, sizeof(*local_dev), GFP_KERNEL);
     if (!local_dev) {
-        ret = ENOMEM;
+        ret = -ENOMEM;
         return ret;
     }
 

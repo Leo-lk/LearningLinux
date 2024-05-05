@@ -233,7 +233,7 @@ static int get_gpio_msg(struct local_dev_t *dev)
 	/* 5.向gpio子系统申请使用GPIO */
 	ret = gpio_request(dev->key_gpio, "LED-GPIO");
     if (ret) {
-        printk(KERN_ERR "gpioled: Failed to request gpios\n");
+        pr_err( "gpioled: Failed to request gpios\n");
         return ret;
 	}
 

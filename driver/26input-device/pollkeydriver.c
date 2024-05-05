@@ -105,7 +105,7 @@ static int get_gpio_msg(struct local_dev_t *dev)
     /* cat /sys/kernel/debug/gpio | grep KEY-GPIO */
     ret = gpio_request(dev->key_gpio, "KEY-GPIO");
     if (ret) {
-        printk(KERN_ERR "gpiokey: Failed to request gpios\r\n");
+        pr_err( "gpiokey: Failed to request gpios\r\n");
         return ret;
 	}
 
@@ -125,10 +125,10 @@ int inputkey_probe(struct platform_device *pdev)
     struct local_dev_t *local_dev;
     struct input_dev *inputdev;
 
-    printk("driver key probe \n");
+	dev_dbg(&pdev->dev, "driver key probe %s\n", __func__);
     local_dev = devm_kzalloc(&pdev->dev, sizeof(*local_dev), GFP_KERNEL);
     if (!local_dev) {
-        ret = ENOMEM;
+        ret = -ENOMEM;
         goto out;
     }
     
@@ -143,7 +143,7 @@ int inputkey_probe(struct platform_device *pdev)
     local_dev->inputpolldev = input_allocate_polled_device();
     if (!local_dev->inputpolldev) {
 		ret = -ENOMEM;
-		printk(KERN_ERR "%s: Not enough memory.\n", __func__);
+		pr_err( "%s: Not enough memory.\n", __func__);
 		goto free_gpio;
     }
     local_dev->inputpolldev->poll = btn_poll;
@@ -161,7 +161,7 @@ int inputkey_probe(struct platform_device *pdev)
 
     ret = input_register_polled_device(local_dev->inputpolldev);
     if (ret) {
-		printk(KERN_ERR "%s: Failed to register device\n", __func__);
+		pr_err( "%s: Failed to register device\n", __func__);
 		goto free_inputpolldev;
 	}
     /* 把local_dev放到pdev->dev.drvdata中 */

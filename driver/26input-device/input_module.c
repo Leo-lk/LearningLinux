@@ -45,7 +45,7 @@ int input_probe(struct platform_device *pdev)
     printk("driver key probe \n");
     local_dev = devm_kzalloc(&pdev->dev, sizeof(*local_dev), GFP_KERNEL);
     if (!local_dev) {
-        ret = ENOMEM;
+        ret = -ENOMEM;
         goto out;
     }
     /* 从platform设备中获取设备节点 */
@@ -59,7 +59,7 @@ int input_probe(struct platform_device *pdev)
     inputdev = input_allocate_device();
 	if (!inputdev) {
 		ret = -ENOMEM;
-		printk(KERN_ERR "%s: Not enough memory.\n", __func__);
+		pr_err( "%s: Not enough memory.\n", __func__);
 		goto free_hardware;
 	}
     /* 设置要上报的事件 */
@@ -71,7 +71,7 @@ int input_probe(struct platform_device *pdev)
 
     ret = input_register_device(inputdev);
     if (ret) {
-		printk(KERN_ERR "%s: Failed to register device\n", __func__);
+		pr_err( "%s: Failed to register device\n", __func__);
 		goto free_inputdev;
 	}
     local_dev->inputdev = inputdev;

@@ -37,7 +37,7 @@
 #include <linux/uaccess.h>
 #include <linux/compat.h>
 
- struct pcf8563 {
+struct pcf8563 {
 	struct device *dev;
 	struct cdev cdev;
 	struct i2c_client *client;
