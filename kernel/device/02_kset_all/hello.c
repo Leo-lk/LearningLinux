@@ -33,7 +33,7 @@ static ssize_t foo_attr_show(struct kobject *kobj,
 {
 	struct foo_attribute *attribute;
 	struct foo_obj *foo;
-
+	/* 获取attr的子类，以调用子类中的操作函数 */
 	attribute = to_foo_attr(attr);
 	foo = to_foo_obj(kobj);
 
@@ -67,6 +67,8 @@ static const struct sysfs_ops foo_sysfs_ops = {
 };
 
 /* 属性的读取函数，每个属性可以有不同的读取 */
+/* (自定义)绑定在在attribute的子类中，foo_attr_show时
+ * 通过传入的attribute获取这个子类后调用var_show */
 static ssize_t var_show(struct foo_obj *foo_obj, struct foo_attribute *attr,
 		      char *buf)
 {

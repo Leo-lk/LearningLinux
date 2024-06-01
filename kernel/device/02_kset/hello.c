@@ -14,7 +14,7 @@ struct foo_obj {
 	int baz;
 	int bar;
 };
-/* 把kobject* 类型的x添加到foo_obj* 的kobj成员 */
+/* 从类型为kobj的结构体成员的指针x，获取该foo_obj类型结构体的指针 */
 #define to_foo_obj(x) container_of(x, struct foo_obj, kobj)
 
 static void foo_release(struct kobject *kobj)
