@@ -8,20 +8,20 @@
 
 MODULE_LICENSE("GPL");
 
-struct foo_obj {
+struct temp_obj {
 	struct kobject kobj;
-	int foo;
-	int baz;
-	int bar;
+	int len;
+	int dep;
+	int enb;
 };
-/* 从类型为kobj的结构体成员的指针x，获取该foo_obj类型结构体的指针 */
-#define to_foo_obj(x) container_of(x, struct foo_obj, kobj)
+/* 从类型为kobj的结构体成员的指针x，获取该temp_obj类型结构体的指针 */
+#define to_temp_obj(x) container_of(x, struct temp_obj, kobj)
 
-static void foo_release(struct kobject *kobj)
+static void temp_release(struct kobject *kobj)
 {
-	struct foo_obj *foo;
+	struct temp_obj *foo;
 
-	foo = to_foo_obj(kobj);
+	foo = to_temp_obj(kobj);
 	kfree(foo);
 }
 
@@ -31,18 +31,18 @@ static void foo_release(struct kobject *kobj)
  */
 static struct kobj_type foo_ktype = {
     // .sysfs_ops = &foo_sysfs_ops,
-    .release = foo_release,
+    .release = temp_release,
     // .default_attrs = foo_default_attrs,
 };
 
 static struct kset *example_kset;
-static struct foo_obj *foo_obj;
-static struct foo_obj *bar_obj;
-static struct foo_obj *baz_obj;
+static struct temp_obj *foo_obj;
+static struct temp_obj *bar_obj;
+static struct temp_obj *baz_obj;
 
-static struct foo_obj *create_foo_obj(const char *name)
+static struct temp_obj *create_temp_obj(const char *name)
 {
-	struct foo_obj *foo;
+	struct temp_obj *foo;
 	int retval;
 
 	/* allocate the memory for the whole object */
@@ -68,9 +68,10 @@ static struct foo_obj *create_foo_obj(const char *name)
 	return foo;
 }
 
-static void destroy_foo_obj(struct foo_obj *foo)
+static void destroy_temp_obj(struct temp_obj *foo)
 {
 	kobject_put(&foo->kobj);
+	kfree(foo);
 }
 
 static int __init example_init(void)
@@ -80,24 +81,24 @@ static int __init example_init(void)
     if (!example_kset)
     	return -ENOMEM;
     /* 在已定义的kset下新增kobject */
-    foo_obj = create_foo_obj("foo");
+    foo_obj = create_temp_obj("foo");
     if (!foo_obj)
     	goto foo_error;
     
-    bar_obj = create_foo_obj("bar");
+    bar_obj = create_temp_obj("bar");
     if (!bar_obj)
     	goto bar_error;
     
-    baz_obj = create_foo_obj("baz");
+    baz_obj = create_temp_obj("baz");
     if (!baz_obj)
     	goto baz_error;
     
     return 0;
 
 baz_error:
-	destroy_foo_obj(bar_obj);
+	destroy_temp_obj(bar_obj);
 bar_error:
-	destroy_foo_obj(foo_obj);
+	destroy_temp_obj(foo_obj);
 foo_error:
 	kset_unregister(example_kset);
 	return -EINVAL;
@@ -105,9 +106,9 @@ foo_error:
 
 static void __exit example_exit(void)
 {
-	destroy_foo_obj(baz_obj);
-	destroy_foo_obj(bar_obj);
-	destroy_foo_obj(foo_obj);
+	destroy_temp_obj(baz_obj);
+	destroy_temp_obj(bar_obj);
+	destroy_temp_obj(foo_obj);
 	kset_unregister(example_kset);
 }
 
